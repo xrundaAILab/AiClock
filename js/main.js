@@ -7,7 +7,7 @@ const app = Vue.createApp({
             rippleRadius: 2,
             responseSpeed: 0.5,
             lightMatrix: null,
-            text: '0',
+            text: '',
             debugInfo: '',
             isEditMode: false,
             showMarker: false,
@@ -19,7 +19,12 @@ const app = Vue.createApp({
             selectedAnimation: '',
             animationLibrary: null,
             animations: null,
-            mode: 'text'  // 'text' 或 'animation' 模式
+            mode: 'text',  // 'text' 或 'animation' 模式
+            isAutoPlaying: false,
+            autoPlayTimer: null,
+            currentContent: null,  // 当前显示的内容（动画名或矩阵数据）
+            autoPlayList: [],      // 自动播放列表
+            timeUpdateInterval: null,  // 用于存储时间更新定时器
         }
     },
     
@@ -81,6 +86,13 @@ const app = Vue.createApp({
                 light.updateNeedleAngle(1, angles[1]);
                 this.lightMatrix.draw();
             }
+        },
+        isAutoPlaying(newVal) {
+            if (newVal) {
+                this.startAutoPlay();
+            } else {
+                this.stopAutoPlay();
+            }
         }
     },
     
@@ -103,6 +115,14 @@ const app = Vue.createApp({
             name: anim.name
         }));
         this.updateInputText();
+
+        // 初始化时显示当前时间
+        this.updateCurrentTime();
+        
+        // 设置定时器，每分钟更新一次时间
+        this.timeUpdateInterval = setInterval(() => {
+            this.updateCurrentTime();
+        }, 60000); // 60000ms = 1分钟
     },
     
     methods: {
@@ -152,9 +172,14 @@ const app = Vue.createApp({
         
         async updateInputText() {
             if (this.mode === 'animation') return;
-            
             if (!this.lightMatrix) return;
-            if (this.text.trim() === '') return;
+            if (this.text.trim() === '') {
+                // 如果文本为空，重置所有指针
+                this.lightMatrix.resetNeedles();
+                this.markedPositions = {};
+                this.updateDebugInfo();
+                return;
+            }
 
             try {
                 // 获取数字配置和字母配置
@@ -454,6 +479,88 @@ const app = Vue.createApp({
         
         beforeDestroy() {
             this.stopAnimation();
+            // 清除时间更新定时器
+            if (this.timeUpdateInterval) {
+                clearInterval(this.timeUpdateInterval);
+            }
+        },
+        
+        async startAutoPlay() {
+            if (!this.autoPlayList.length) {
+                // 构建播放列表：动画效果 + 字母矩阵
+                this.autoPlayList = [
+                    ...this.animations.map(anim => ({ type: 'animation', key: anim.key })),
+                    ...Object.keys(await this.loadStyleConfig()).map(key => ({ 
+                        type: 'matrix', 
+                        key: key 
+                    }))
+                ];
+            }
+
+            this.playNext();
+        },
+
+        stopAutoPlay() {
+            if (this.autoPlayTimer) {
+                clearTimeout(this.autoPlayTimer);
+                this.autoPlayTimer = null;
+            }
+            this.stopAnimation();
+            this.mode = 'text';
+            this.text = '';
+            this.lightMatrix.resetNeedles();
+            this.markedPositions = {};
+            this.updateDebugInfo();
+        },
+
+        async playNext() {
+            if (!this.isAutoPlaying) return;
+
+            // 获取下一个要播放的内容
+            const current = this.autoPlayList.shift();
+            this.autoPlayList.push(current);  // 移到末尾以实现循环
+
+            // 根据类型播放内容
+            if (current.type === 'animation') {
+                // 先清除文本，再设置动画
+                this.text = '';
+                this.selectedAnimation = current.key;
+            } else {
+                // 先停止动画，再设置文本
+                this.stopAnimation();
+                this.selectedAnimation = '';
+                this.mode = 'text';  // 确保模式是文本模式
+                this.text = current.key;
+                // 强制更新文本显示
+                await this.updateInputText();
+            }
+
+            // 10秒后播放下一个
+            this.autoPlayTimer = setTimeout(() => {
+                this.playNext();
+            }, 10000);  // 保持10秒的显示时间
+        },
+
+        async loadStyleConfig() {
+            const response = await fetch('font_configs/style_config.json');
+            return await response.json();
+        },
+
+        onTextInput(event) {
+            // 立即更新文本显示
+            if (this.mode === 'animation') {
+                this.stopAnimation();
+                this.selectedAnimation = '';
+                this.mode = 'text';
+            }
+            this.updateInputText();
+        },
+
+        updateCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            this.text = `${hours}:${minutes}`;
         }
     }
 }).mount('#app'); 
