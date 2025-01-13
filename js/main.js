@@ -9,6 +9,12 @@ const app = Vue.createApp({
             lightMatrix: null,
             text: '0',
             debugInfo: '',
+            isEditMode: false,
+            showMarker: false,
+            currentRow: 0,
+            currentCol: 0,
+            needle1Time: 12,
+            needle2Time: 12,
             markedPositions: {}
         }
     },
@@ -26,6 +32,11 @@ const app = Vue.createApp({
         },
         text(newVal) {
             this.updateInputText();
+        },
+        isEditMode(newVal) {
+            if (!newVal) {
+                this.showMarker = false;
+            }
         }
     },
     
@@ -111,7 +122,11 @@ const app = Vue.createApp({
                 console.log('Processing characters:', chars);
                 
                 // 计算起始列，使字符水平居中显示
-                const totalWidth = chars.length * 3;
+                let totalWidth = 0;
+                chars.forEach(char => {
+                    // 冒号只占1列，其他字符占3列
+                    totalWidth += char === ':' ? 1 : 3;
+                });
                 const startCol = Math.max(0, Math.floor((this.cols - totalWidth) / 2));
                 console.log('Start column:', startCol);
                 
@@ -124,11 +139,12 @@ const app = Vue.createApp({
                 const newActivePositions = new Set();
                 
                 // 遍历每个字符
+                let currentCol = startCol;
                 chars.forEach((char, charIndex) => {
                     console.log(`Processing char: ${char}`);
                     if (numberConfig[char]) {
                         const matrix = numberConfig[char];
-                        const offsetCol = startCol + (charIndex * 3);
+                        const offsetCol = currentCol;
                         console.log(`Matrix for char ${char}:`, matrix);
                         
                         // 应用字符矩阵到表针
@@ -156,6 +172,8 @@ const app = Vue.createApp({
                                 }
                             });
                         });
+                        // 更新下一个字符的起始列
+                        currentCol += char === ':' ? 1 : 3;
                     }
                 });
                 
@@ -308,6 +326,48 @@ const app = Vue.createApp({
             const angle1 = ((time1 % 12) * 30 - 90) * Math.PI / 180;
             const angle2 = ((time2 % 12) * 30 - 90) * Math.PI / 180;
             return [angle1, angle2];
+        },
+        
+        handleCanvasClick(event) {
+            if (!this.isEditMode) return;
+            
+            const rect = event.target.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            this.currentCol = Math.floor(x / this.lightSize);
+            this.currentRow = Math.floor(y / this.lightSize);
+            
+            // 如果该位置已有标记，显示已保存的值
+            const key = `${this.currentRow},${this.currentCol}`;
+            if (this.markedPositions[key]) {
+                const [time1, time2] = this.markedPositions[key];
+                this.needle1Time = time1;
+                this.needle2Time = time2;
+            } else {
+                // 如果没有标记，设置为默认值12点
+                this.needle1Time = 12;
+                this.needle2Time = 12;
+            }
+            
+            // 显示标记弹层
+            this.showMarker = true;
+        },
+        
+        saveNeedlePosition() {
+            const key = `${this.currentRow},${this.currentCol}`;
+            this.markedPositions[key] = [this.needle1Time, this.needle2Time];
+            
+            // 更新表针角度
+            const angles = this.timeToAngles(this.needle1Time, this.needle2Time);
+            const light = this.lightMatrix.lights[this.currentRow][this.currentCol];
+            light.updateNeedleAngle(0, angles[0]);
+            light.updateNeedleAngle(1, angles[1]);
+            
+            // 更新显示
+            this.lightMatrix.draw();
+            this.updateDebugInfo();
+            this.showMarker = false;
         },
     }
 }).mount('#app'); 
