@@ -2,7 +2,7 @@ const app = Vue.createApp({
     data() {
         return {
             rows: 8,
-            cols: 15,
+            cols: 16,
             lightSize: 50,
             rippleRadius: 2,
             responseSpeed: 0.5,
@@ -15,7 +15,11 @@ const app = Vue.createApp({
             currentCol: 0,
             needle1Time: 12,
             needle2Time: 12,
-            markedPositions: {}
+            markedPositions: {},
+            selectedAnimation: '',
+            animationLibrary: null,
+            animations: null,
+            mode: 'text'  // 'text' 或 'animation' 模式
         }
     },
     
@@ -31,17 +35,73 @@ const app = Vue.createApp({
             }
         },
         text(newVal) {
+            if (this.mode === 'animation') {
+                this.stopAnimation();
+                this.selectedAnimation = '';
+                this.mode = 'text';
+            }
             this.updateInputText();
         },
         isEditMode(newVal) {
-            if (!newVal) {
-                this.showMarker = false;
+            if (newVal) {
+                // 进入编辑模式时停止动画
+                this.stopAnimation();
+                
+                // 重置所有指针
+                this.lightMatrix.resetNeedles();
+            }
+        },
+        selectedAnimation(newVal) {
+            if (newVal) {
+                console.log('Starting animation:', newVal);
+                // 停止当前动画
+                this.stopAnimation();
+                // 重置所有指针到默认位置
+                this.lightMatrix.resetNeedles();
+                this.mode = 'animation';
+                // 直接开始新动画
+                this.animationLibrary.play(newVal);
+                console.log('Animation started');
+            } else {
+                this.mode = 'text';
+            }
+        },
+        needle1Time(newVal) {
+            if (this.showMarker) {
+                const angles = this.timeToAngles(newVal, this.needle2Time);
+                const light = this.lightMatrix.lights[this.currentRow][this.currentCol];
+                light.updateNeedleAngle(0, angles[0]);
+                this.lightMatrix.draw();
+            }
+        },
+        needle2Time(newVal) {
+            if (this.showMarker) {
+                const angles = this.timeToAngles(this.needle1Time, newVal);
+                const light = this.lightMatrix.lights[this.currentRow][this.currentCol];
+                light.updateNeedleAngle(1, angles[1]);
+                this.lightMatrix.draw();
             }
         }
     },
     
     mounted() {
         this.initMatrix();
+        this.animationLibrary = new AnimationLibrary(this.lightMatrix);
+        // 确保动画库正确初始化
+        console.log('Animation library initialized:', this.animationLibrary);
+        console.log('Available animations:', this.animationLibrary.animations);
+
+        // 添加动画切换回调
+        this.animationLibrary.onAnimationChange = (animationKey) => {
+            this.selectedAnimation = animationKey || '';
+            console.log('Animation changed to:', animationKey);
+        };
+        
+        // 格式化动画列表以便于显示
+        this.animations = Object.entries(this.animationLibrary.animations).map(([key, anim]) => ({
+            key: key,
+            name: anim.name
+        }));
         this.updateInputText();
     },
     
@@ -91,19 +151,23 @@ const app = Vue.createApp({
         },
         
         async updateInputText() {
-            if (!this.lightMatrix) return;
+            if (this.mode === 'animation') return;
             
+            if (!this.lightMatrix) return;
             if (this.text.trim() === '') return;
 
             try {
-                // 获取数字配置
-                const response = await fetch('font_configs/number_config.json');
-                const numberConfig = await response.json();
-                console.log('Loaded number config:', numberConfig);
-                
+                // 获取数字配置和字母配置
+                const numberResponse = await fetch('font_configs/number_config.json');
+                const numberConfig = await numberResponse.json();
+                const styleResponse = await fetch('font_configs/style_config.json');
+                const styleConfig = await styleResponse.json();
+                console.log('Full style_config content:', styleConfig);
+                console.log('Keys in style_config:', Object.keys(styleConfig));
+
                 // 等待所有动画完成后再继续
                 await new Promise(resolve => setTimeout(resolve, this.lightMatrix.lights[0][0].ANIMATION_DURATION));
-                
+
                 // 记录当前活动的表针位置
                 const activePositions = new Set();
                 this.lightMatrix.lights.forEach((row, rowIndex) => {
@@ -116,69 +180,81 @@ const app = Vue.createApp({
                     });
                 });
                 console.log('Current active positions:', Array.from(activePositions));
-                
+
                 // 获取输入的字符
-                const chars = this.text.split('');
-                console.log('Processing characters:', chars);
+                const chars = this.text.replace(/\s+/g, '').split('');
+                const char = chars[0].toLowerCase();
+                console.log('Looking for character:', char);
+                console.log('Found in style_config:', char in styleConfig);
+                console.log('Matrix data:', styleConfig[char]);
+
+                // 检查是否是字母
+                const isLetter = chars[0].match(/[a-zA-Z]/);
                 
-                // 计算起始列，使字符水平居中显示
-                let totalWidth = 0;
-                chars.forEach(char => {
-                    // 冒号只占1列，其他字符占3列
-                    totalWidth += char === ':' ? 1 : 3;
-                });
-                const startCol = Math.max(0, Math.floor((this.cols - totalWidth) / 2));
+                // 计算起始位置
+                let startCol = 0;
+                let startRow = 0;
+                
+                // 如果不是字母，则使用居中对齐
+                if (!isLetter) {
+                    let totalWidth = 0;
+                    chars.forEach(char => {
+                        totalWidth += char === ':' ? 1 : 3;
+                    });
+                    startCol = Math.max(0, Math.floor((this.cols - totalWidth) / 2));
+                    
+                    const charHeight = 6;
+                    startRow = Math.max(0, Math.floor((this.rows - charHeight) / 2));
+                }
+
                 console.log('Start column:', startCol);
-                
-                // 计算起始行，使字符垂直居中显示
-                const charHeight = 6;
-                const startRow = Math.max(0, Math.floor((this.rows - charHeight) / 2));
                 console.log('Start row:', startRow);
-                
+
                 // 记录新的活动位置
                 const newActivePositions = new Set();
-                
+
                 // 遍历每个字符
                 let currentCol = startCol;
                 chars.forEach((char, charIndex) => {
                     console.log(`Processing char: ${char}`);
-                    if (numberConfig[char]) {
-                        const matrix = numberConfig[char];
+                    const matrix = numberConfig[char] || styleConfig[char.toLowerCase()];
+                    console.log(`Raw matrix data from config for '${char}':`, JSON.stringify(matrix, null, 2));
+
+                    if (matrix) {
                         const offsetCol = currentCol;
-                        console.log(`Matrix for char ${char}:`, matrix);
-                        
-                        // 应用字符矩阵到表针
-                        matrix.forEach((row, rowIndex) => {
-                            row.forEach((cell, cellIndex) => {
+                        // 只应用字符矩阵的实际数据部分（6x3）
+                        for (let rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
+                            for (let cellIndex = 0; cellIndex < matrix[rowIndex].length; cellIndex++) {
+                                const cell = matrix[rowIndex][cellIndex];
                                 const col = offsetCol + cellIndex;
                                 const adjustedRow = startRow + rowIndex;
-                                
+
                                 // 检查是否在表盘范围内
                                 if (adjustedRow < this.rows && col < this.cols) {
                                     if (cell[0] !== null && cell[1] !== null) {
                                         const key = `${adjustedRow},${col}`;
+                                        console.log(`Setting position ${key} with values:`, cell);
                                         newActivePositions.add(key);
-                                        
+
                                         // 更新表针角度
                                         const angles = this.timeToAngles(cell[0], cell[1]);
-                                        console.log(`Setting angles at [${adjustedRow},${col}]:`, angles);
                                         const light = this.lightMatrix.lights[adjustedRow][col];
                                         light.updateNeedleAngle(0, angles[0]);
                                         light.updateNeedleAngle(1, angles[1]);
-                                        
+
                                         // 更新位置记录
                                         this.markedPositions[key] = [cell[0], cell[1]];
                                     }
                                 }
-                            });
-                        });
+                            }
+                        }
                         // 更新下一个字符的起始列
                         currentCol += char === ':' ? 1 : 3;
                     }
                 });
-                
+
                 console.log('New active positions:', Array.from(newActivePositions));
-                
+
                 // 重置不再使用的表针
                 activePositions.forEach(pos => {
                     if (!newActivePositions.has(pos)) {
@@ -189,11 +265,11 @@ const app = Vue.createApp({
                         delete this.markedPositions[pos];
                     }
                 });
-                
+
                 // 更新显示
                 this.lightMatrix.draw();
                 this.updateDebugInfo();
-                
+
             } catch (error) {
                 console.error('Error updating text:', error);
                 console.error('Error details:', error.stack);
@@ -369,5 +445,15 @@ const app = Vue.createApp({
             this.updateDebugInfo();
             this.showMarker = false;
         },
+        
+        stopAnimation() {
+            console.log('Stopping animation');
+            this.animationLibrary.stop();
+            console.log('Animation stopped');
+        },
+        
+        beforeDestroy() {
+            this.stopAnimation();
+        }
     }
 }).mount('#app'); 
