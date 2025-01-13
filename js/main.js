@@ -4,19 +4,10 @@ const app = Vue.createApp({
             rows: 8,
             cols: 15,
             lightSize: 50,
-            currentX: 0,
-            currentY: 0,
-            matrixX: 0,
-            matrixY: 0,
             rippleRadius: 2,
             responseSpeed: 0.5,
             lightMatrix: null,
             text: '0',
-            isRunning: false,
-            textUpdateInterval: null,
-            animationFrame: null,
-            animationStartTime: 0,
-            animationDuration: 1000, // 动画持续1秒
             debugInfo: '',
         }
     },
@@ -24,9 +15,13 @@ const app = Vue.createApp({
     watch: {
         text: {
             handler(newText) {
-                if (this.lightMatrix && newText.trim() !== '' && !this.isRunning) {
-                    this.lightMatrix.drawText(newText);
-                    this.updateDebugInfo();
+                if (this.lightMatrix) {
+                    if (newText.trim() === '') {
+                        this.resetNeedles();
+                    } else {
+                        this.resetNeedles();
+                        this.fetchCharMatrix(newText[0]);
+                    }
                 }
             },
             immediate: true
@@ -47,13 +42,8 @@ const app = Vue.createApp({
         this.initMatrix();
         // 初始化时显示默认值 "0"
         if (this.lightMatrix) {
-            this.lightMatrix.drawText(this.text);
-            this.updateDebugInfo();
+            this.fetchCharMatrix(this.text);
         }
-        // 启动定时更新调试信息
-        setInterval(() => {
-            this.updateDebugInfo();
-        }, 100); // 每100ms更新一次
     },
     
     methods: {
@@ -75,64 +65,6 @@ const app = Vue.createApp({
             );
         },
         
-        handleMouseMove(event) {
-            const rect = event.target.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            
-            this.currentX = Math.round(x);
-            this.currentY = Math.round(y);
-            
-            this.matrixX = Math.floor(x / this.lightSize);
-            this.matrixY = Math.floor(y / this.lightSize);
-            
-            this.lightMatrix.updateLight(x, y);
-        },
-        
-        startAnimation() {
-            this.isRunning = true;
-            this.textUpdateInterval = setInterval(() => {
-                if (this.text.trim() !== '') {
-                    this.lightMatrix.drawText(this.text);
-                    this.updateDebugInfo();
-                }
-            }, 100);
-            
-            this.animationStartTime = performance.now();
-            this.animate();
-        },
-        
-        stopAnimation() {
-            this.isRunning = false;
-            if (this.textUpdateInterval) {
-                clearInterval(this.textUpdateInterval);
-                this.textUpdateInterval = null;
-            }
-            if (this.animationFrame) {
-                cancelAnimationFrame(this.animationFrame);
-                this.animationFrame = null;
-            }
-            this.resetNeedles();
-        },
-        
-        animate() {
-            if (!this.isRunning) return;
-            
-            const currentTime = performance.now();
-            const elapsed = currentTime - this.animationStartTime;
-            const progress = Math.min(elapsed / this.animationDuration, 1);
-            
-            this.lightMatrix.animate(progress);
-            
-            if (progress < 1) {
-                this.animationFrame = requestAnimationFrame(() => this.animate());
-            } else {
-                this.animationStartTime = performance.now();
-            }
-            
-            this.updateDebugInfo();
-        },
-        
         resetNeedles() {
             if (this.lightMatrix) {
                 this.lightMatrix.resetNeedles();
@@ -140,16 +72,49 @@ const app = Vue.createApp({
             }
         },
         
-        updateDebugInfo() {
+        updateDebugInfo(grayMatrix) {
             if (this.lightMatrix) {
-                this.debugInfo = this.lightMatrix.getDebugInfo();
+                let info = '灰度值矩阵:\n\n';
+                if (grayMatrix) {
+                    grayMatrix.forEach((row, i) => {
+                        info += row.map(val => val.toString().padStart(4)).join(' ') + '\n';
+                    });
+                }
+                this.debugInfo = info;
             }
         },
         
         updateText(event) {
-            if (event.target.value.trim() === '') {
-                this.text = '0';
+            // 移除默认值设置，允许输入框为空
+        },
+        
+        async fetchCharMatrix(char) {
+            try {
+                const response = await fetch(`http://localhost:8081/get_char_matrix?char=${char}`);
+                const data = await response.json();
+                console.log('Received matrix data:', data);
+                console.log('Gray values:', data.gray_matrix);
+                if (data.matrix) {
+                    this.updateMatrixDisplay(data.matrix);
+                    this.updateDebugInfo(data.gray_matrix);
+                }
+            } catch (error) {
+                console.error('Error fetching matrix:', error);
             }
+        },
+        
+        updateMatrixDisplay(matrix) {
+            // 更新表针角度
+            for (let row = 0; row < matrix.length; row++) {
+                for (let col = 0; col < matrix[0].length; col++) {
+                    if (row < this.rows && col < this.cols) {
+                        const angles = matrix[row][col];
+                        this.lightMatrix.lights[row][col].needles[0].angle = angles[0];
+                        this.lightMatrix.lights[row][col].needles[1].angle = angles[1];
+                    }
+                }
+            }
+            this.lightMatrix.draw();
         },
     }
 }).mount('#app'); 
