@@ -12,7 +12,7 @@
         <div class="config-panel">
             <div class="input-group">
                 <label>输入文字：</label>
-                <input type="text" v-model="text" @input="updateText">
+                <input type="text" v-model="text">
             </div>
             <div class="input-group">
                 <label>行数：</label>
@@ -47,7 +47,16 @@
         <div class="debug-panel">
             <h3>调试信息</h3>
             <div class="debug-content">
-                <pre>{{ debugInfo }}</pre>
+                <textarea 
+                    v-model="debugInfo" 
+                    @input="handleDebugInput"
+                    rows="10" 
+                    style="width: 100%; background: #2d2d2d; color: #fff; font-family: monospace;"
+                ></textarea>
+            </div>
+            <div class="debug-controls">
+                <button @click="applyDebugInfo">应用到表盘</button>
+                <button @click="exportDebugInfo">复制配置</button>
             </div>
         </div>
     </div>
