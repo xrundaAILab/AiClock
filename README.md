@@ -1,7 +1,5 @@
-<<<<<<< HEAD
-# AiClock
-Light Matrix Display - An interactive web application that simulates a matrix of light needles
-=======
+# Light Matrix Display - An interactive web application that simulates a matrix of light needles
+
 # AIclock - Light Matrix Display / 光线矩阵显示器 / ライトマトリックスディスプレイ
 
 [English](#english) | [中文](#中文) | [日本語](#日本語)
@@ -98,4 +96,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Project Status
 Active development - This project is being actively developed and maintained.
->>>>>>> backup-main
