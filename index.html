@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光线矩阵模拟器</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="config-panel">
+            <div class="input-group">
+                <label>输入文字：</label>
+                <input type="text" v-model="text">
+            </div>
+            <div class="input-group">
+                <label>行数：</label>
+                <input type="number" v-model="rows" min="1" max="50">
+            </div>
+            <div class="input-group">
+                <label>列数：</label>
+                <input type="number" v-model="cols" min="1" max="50">
+            </div>
+            <div class="input-group">
+                <label>光点大小：</label>
+                <input type="number" v-model="lightSize" min="1" max="50">
+            </div>
+            <div class="input-group">
+                <label>波纹范围：</label>
+                <input type="range" v-model="rippleRadius" min="1" max="5" step="0.5">
+            </div>
+            <div class="input-group">
+                <label>响应速度：</label>
+                <input type="range" v-model="responseSpeed" min="0.1" max="1" step="0.1">
+            </div>
+            <div class="control-panel">
+                <button @click="resetMatrix">重置</button>
+                <button @click="resetNeedles">重置指针</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas ref="canvas"></canvas>
+        </div>
+        
+        <div class="debug-panel">
+            <h3>调试信息</h3>
+            <div class="debug-content">
+                <textarea 
+                    v-model="debugInfo" 
+                    @input="handleDebugInput"
+                    rows="10" 
+                    style="width: 100%; background: #2d2d2d; color: #fff; font-family: monospace;"
+                ></textarea>
+            </div>
+            <div class="debug-controls">
+                <button @click="applyDebugInfo">应用到表盘</button>
+                <button @click="exportDebugInfo">复制配置</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/LightMatrix.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 

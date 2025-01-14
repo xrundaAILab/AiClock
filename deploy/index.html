@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光线矩阵模拟器</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <button class="settings-button" @click.stop="toggleSettings">
+        </button>
+        
+        <div class="settings-modal" v-if="showSettings" @click.self="closeSettings">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <h2>设置</h2>
+                    <button class="close-button" @click="closeSettings">×</button>
+                </div>
+                <div class="settings-body">
+                    <div class="config-panel">
+                        <div class="input-group">
+                            <label>输入文字：</label>
+                            <input type="text" 
+                                   v-model="text" 
+                                   @input="onTextInput">
+                        </div>
+                        <div class="input-group">
+                            <label>地图编辑：</label>
+                            <input type="checkbox" v-model="isEditMode">
+                        </div>
+                        <div class="input-group">
+                            <label>行数：</label>
+                            <input type="number" v-model="rows" min="1" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>列数：</label>
+                            <input type="number" v-model="cols" min="1" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>光点大小：</label>
+                            <input type="number" v-model="lightSize" min="1" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>波纹范围：</label>
+                            <input type="range" v-model="rippleRadius" min="1" max="5" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label>响应速度：</label>
+                            <input type="range" v-model="responseSpeed" min="0.1" max="1" step="0.1">
+                        </div>
+                        <div class="control-panel">
+                            <button @click="resetNeedles">重置表针</button>
+                            <div class="animation-controls">
+                                <select v-model="selectedAnimation">
+                                    <option value="">选择动画效果</option>
+                                    <option v-for="anim in animations" :key="anim.key" :value="anim.key">
+                                        {{ anim.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <label class="auto-play">
+                            <input type="checkbox" v-model="isAutoPlaying"> 自动播放
+                        </label>
+                    </div>
+                    
+                    <div class="debug-switch">
+                        <label>
+                            <input type="checkbox" v-model="showDebug"> 显示调试信息
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas ref="canvas" @click="handleCanvasClick"></canvas>
+        </div>
+        
+        <div class="debug-panel" v-if="showDebug">
+            <h3>调试信息</h3>
+            <div class="debug-content">
+                <textarea 
+                    v-model="debugInfo" 
+                    @input="handleDebugInput"
+                    rows="10" 
+                    style="width: 100%; background: #2d2d2d; color: #fff; font-family: monospace;"
+                ></textarea>
+            </div>
+            <div class="debug-controls">
+                <button @click="applyDebugInfo">应用到表盘</button>
+                <button @click="exportDebugInfo">复制配置</button>
+            </div>
+        </div>
+        
+        <div class="marker-modal" v-if="showMarker && isEditMode">
+            <div class="marker-content">
+                <h3>设置表针位置 [{{currentRow}}, {{currentCol}}]</h3>
+                <div class="time-inputs">
+                    <div class="input-group">
+                        <label>指针1:</label>
+                        <select v-model.number="needle1Time">
+                            <option v-for="n in 12" :value="n">{{n}}点</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>指针2:</label>
+                        <select v-model.number="needle2Time">
+                            <option v-for="n in 12" :value="n">{{n}}点</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="marker-buttons">
+                    <button @click="saveNeedlePosition">保存</button>
+                    <button @click="showMarker = false">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/LightMatrix.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
