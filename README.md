@@ -264,6 +264,6 @@ If you find this project helpful, consider buying me a coffee ☕
 このプロジェクトが役に立つと思ったら、コーヒーをおごってください ☕
 
 <div align="center">
-  <img src="images/wechat.png" width="200" alt="WeChat Pay"/>
+  <img src="qrcode.png" width="200" alt="WeChat Pay"/>
   <p>Thank you for your support! / 感谢您的支持！/ ご支援ありがとうございます！</p>
 </div>
