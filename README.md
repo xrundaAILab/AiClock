@@ -6,7 +6,7 @@ Light Matrix Display - An interactive web application that simulates a matrix of
 
 [English](#english) | [中文](#中文) | [日本語](#日本語)
 
-![Demo](example/demo.gif)
+![Demo](images/ky1.png)
 
 ## English
 
@@ -24,9 +24,9 @@ AIclock is an interactive web application that simulates a matrix of light needl
 
 ### Screenshots
 <div align="center">
-<img src="example/clock.png" width="300" alt="Clock Mode"/>
-<img src="example/text.png" width="300" alt="Text Mode"/>
-<img src="example/animation.png" width="300" alt="Animation Mode"/>
+<img src="images/ky2.png" width="300" alt="Clock Mode"/>
+<img src="images/ky3.png" width="300" alt="Text Mode"/>
+<img src="images/ky4.png" width="300" alt="Animation Mode"/>
 </div>
 
 ### Project Structure
