@@ -4,6 +4,9 @@
 
 [English](#english) | [中文](#中文) | [日本語](#日本語)
 
+### Online Demo / 在线体验 / オンラインデモ
+👉 [Try it now](https://res.xrunda.com/aiclock/index.html) / [立即体验](https://res.xrunda.com/aiclock/index.html) / [今すぐ試す](https://res.xrunda.com/aiclock/index.html)
+
 ![Demo](example/demo.gif)
 
 ## English
@@ -57,6 +60,9 @@ aiclock/
 - Canvas-based rendering
 - JSON-based font configuration
 - Python tools for font processing
+
+### Online Demo
+Try the live demo at: [https://res.xrunda.com/aiclock/index.html](https://res.xrunda.com/aiclock/index.html)
 
 ### Quick Start
 1. Clone the repository
@@ -132,6 +138,9 @@ aiclock/
 - 基于 JSON 的字体配置
 - Python 字体处理工具
 
+### 在线体验
+访问在线演示：[https://res.xrunda.com/aiclock/index.html](https://res.xrunda.com/aiclock/index.html)
+
 ### 快速开始
 1. 克隆仓库
 ```bash
@@ -205,6 +214,9 @@ aiclock/
 - Canvas ベースの描画
 - JSON ベースのフォント設定
 - Python フォント処理ツール
+
+### オンラインデモ
+ライブデモはこちら：[https://res.xrunda.com/aiclock/index.html](https://res.xrunda.com/aiclock/index.html)
 
 ### クイックスタート
 1. リポジトリをクローン
