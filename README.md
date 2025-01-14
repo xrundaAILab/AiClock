@@ -11,6 +11,14 @@
 ### Introduction
 AIclock is an interactive web application that simulates a matrix of light needles, capable of displaying time, text, and animations. Each light point consists of two needles that can rotate independently to create various visual effects.
 
+### Demo Video
+<div align="center">
+  <a href="example/shuai.mp4" target="_blank">
+    <img src="example/video-thumbnail.png" width="600" alt="Demo Video"/>
+  </a>
+  <p>👆 Click to watch demo video</p>
+</div>
+
 ### Features
 - Real-time clock display
 - Text display support
