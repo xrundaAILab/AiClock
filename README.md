@@ -252,3 +252,18 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Project Status
 Active development - This project is being actively developed and maintained.
+
+---
+
+## Support the Project / 支持项目 / プロジェクトをサポート
+
+If you find this project helpful, consider buying me a coffee ☕
+
+如果这个项目对您有帮助，可以请作者喝杯咖啡 ☕
+
+このプロジェクトが役に立つと思ったら、コーヒーをおごってください ☕
+
+<div align="center">
+  <img src="images/wechat.png" width="200" alt="WeChat Pay"/>
+  <p>Thank you for your support! / 感谢您的支持！/ ご支援ありがとうございます！</p>
+</div>
