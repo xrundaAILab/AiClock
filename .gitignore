@@ -1,9 +1,19 @@
+# Python
 *.pyc
 __pycache__/
-.DS_Store
 .env
 .venv
 venv/
 ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
 .idea/
+.vscode/
+
+# Logs
 *.log
+
