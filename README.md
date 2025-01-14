@@ -4,7 +4,7 @@
 
 [English](#english) | [中文](#中文) | [日本語](#日本語)
 
-![Demo](example/ky1.png)
+![Demo](example/demo.gif)
 
 ## English
 
