@@ -38,6 +38,17 @@ body {
     width: 200px;
 }
 
+.input-group input[type="checkbox"] {
+    width: auto;
+    margin-left: 10px;
+}
+
+.small-button {
+    min-width: 60px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
 .canvas-container {
     background: white;
     border-radius: 8px;
@@ -104,4 +115,173 @@ button:disabled {
     white-space: pre-wrap;
     font-family: monospace;
     font-size: 14px;
+}
+
+.debug-content textarea {
+    border: none;
+    resize: vertical;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.debug-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.marker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.marker-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 300px;
+}
+
+.time-inputs {
+    margin: 20px 0;
+}
+
+.marker-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.animation-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.animation-controls select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    min-width: 150px;
+}
+
+.auto-play {
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.auto-play input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* 设置按钮 */
+.settings-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 8px;
+    height: 8px;
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 0;
+    background: url('shezhi.png') no-repeat center center;
+    background-size: contain;
+}
+
+/* 移除所有按钮的默认状态和悬停状态 */
+.settings-button:hover,
+.settings-button:active,
+.settings-button:focus {
+    outline: none;
+    text-decoration: none;
+    border: none;
+}
+
+/* 设置弹层 */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    animation: fadeIn 0.3s ease;
+}
+
+.settings-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-body {
+    padding: 20px;
+}
+
+.debug-switch {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 } 
